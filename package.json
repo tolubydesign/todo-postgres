@@ -1,0 +1,17 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "serve": "NODE_ENV=development nodemon -r tsconfig-paths/register src/server.ts",
+    "build": "tsc --project './tsconfig.json'",
+    "start-build": "node dist/index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.2.2"
+  }
+}
