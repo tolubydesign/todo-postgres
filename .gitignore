@@ -24,3 +24,9 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+.idea/
+.vscode/
+tmp/
+temp/
+nodemon.txt
