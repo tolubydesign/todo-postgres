@@ -6,12 +6,25 @@
   "scripts": {
     "serve": "NODE_ENV=development nodemon -r tsconfig-paths/register src/server.ts",
     "build": "tsc --project './tsconfig.json'",
-    "start-build": "node dist/index.js"
+    "dev-build": "npm run build && NODE_ENV=development node dist/server.js",
+    "prod-build": "npm run build && NODE_ENV=development node dist/server.js"
   },
   "devDependencies": {
+    "@types/node": "^20.6.2",
     "nodemon": "^3.0.1",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.9.3",
+    "@types/cors": "^2.8.14",
+    "@types/pg": "^8.10.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "graphql": "^16.8.0",
+    "pg": "^8.11.3",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.3.17"
   }
 }
