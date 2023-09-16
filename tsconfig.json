@@ -5,11 +5,18 @@
     "require": ["tsconfig-paths/register"]
   },
   "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
     "rootDirs": ["src"],
     "rootDir": "./",
-    "lib": ["es2020"],
+    "lib": [
+      "es5",
+      "es6",
+      "es2020"
+    ],
     "target": "es2020",
-    "module": "ES2020",
+    "module": "esnext",
     // "module": "commonjs",
     "moduleResolution": "node",
     "types": ["node"],
