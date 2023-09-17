@@ -5,6 +5,7 @@ import { DataSource, Repository } from "typeorm";
 import { User } from "./entity/user.js";
 import { Task } from "./entity/task.js";
 import dotenv from 'dotenv'
+import { ApolloBadRequestError, ApolloInternalServerError } from "../../shared/error/error-handler.js";
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,8 +35,6 @@ class PostgreSQLConnection {
     subscribers: [],
   });
 
-  
-
   private userRepository: Repository<User> | undefined;
   private taskRepository: Repository<Task> | undefined;
 
@@ -46,16 +45,17 @@ class PostgreSQLConnection {
   private async establishConnection() {
     await this.initializeDatabase();
     this.userRepository = this.AppDataSource.getRepository(User);
-    this.taskRepository = this.AppDataSource.getRepository(Task)
+    this.taskRepository = this.AppDataSource.getRepository(Task);
   }
 
-  async initializeDatabase(): Promise<any> {
-    if (!this.AppDataSource) return new Error("Cannot access source data.");
+  // initialise application data source.
+  async initializeDatabase(): Promise<void> {
+    if (!this.AppDataSource) throw new Error("Cannot access source data.");
     // Check that there are users. if there's nothing then add them
     return await this.AppDataSource.initialize().then(async () => {
 
       const hasUsers = await this.AppDataSource.manager.find(User)
-
+      console.log("Initialising database.")
       if (!hasUsers || hasUsers.length <= 0) {
         console.log("Inserting a new user into the database...");
         const user1 = this.createNewUser({
@@ -95,13 +95,25 @@ class PostgreSQLConnection {
         console.log("Here you can setup and run express / fastify / any other framework.")
       }
 
-    }).catch((error) => console.log("!!!", {error}))
+    }).catch((error) => {
+      console.log("Error on data source initialisation: ", error?.message ? error.message : error);
+    })
   }
 
-  createNewUser({ username, email, firstName, lastName, password }: Partial<User>) {
-    if (!username || !email || !firstName || !lastName || !password) {
-      throw new Error("Missing parameters");
-    }
+  /**
+   * Create a new User() class. Attach param details to new class to create new user.
+   * Will error if all relevant information hasn't been provided.
+   * @param param.username 
+   * @param param.email 
+   * @param param.firstName 
+   * @param param.lastName 
+   * @param param.password 
+   * @returns user. Created user with relevant user information.
+   */
+  createNewUser({ username, email, firstName, lastName, password }: Partial<User>): User {
+    // error if insufficient values are provided. Error will bubble up
+    if (!username || !email || !firstName || !lastName || !password)
+      throw new ApolloBadRequestError("Missing relevant user information.");
 
     const user = new User();
     user.email = email;
@@ -113,18 +125,40 @@ class PostgreSQLConnection {
     return user
   }
 
-  getUserDataSource(): Repository<User> | Error {
-    if (!this.userRepository) return new Error("Cannot access users.");
+  /**
+   * Create a new Task() class. Attach param details to new class to create new task.
+   * Will error if all relevant information have not been provided.
+   * @param param.description
+   * @param param.title
+   * @param param.owner ID of the user who created the task.
+   * @returns 
+   */
+  createTask({ description, owner, title }: Partial<Task>): Task {
+    // error if insufficient values are provided. Error will bubble up
+    if (!owner || !title)
+      throw new ApolloBadRequestError("Missing relevant task information.");
+
+    const task = new Task();
+    task.complete = false;
+    task.description = description ?? "";
+    task.title = title;
+    task.owner = owner;
+
+    return task
+  };
+
+  getUserDataSource(): Repository<User> {
+    if (!this.userRepository) throw new ApolloInternalServerError("Cannot access users.");
     return this.userRepository;
   };
 
-  getTaskDataSource(): Repository<Task> | Error {
-    if (!this.taskRepository) return new Error("Cannot access tasks.");
+  getTaskDataSource(): Repository<Task> {
+    if (!this.taskRepository) throw new ApolloInternalServerError("Cannot access tasks.");
     return this.taskRepository;
   }
 
-  dataSource(): DataSource | Error {
-    if (!this.AppDataSource) return new Error("Cannot access data source.");
+  dataSource(): DataSource {
+    if (!this.AppDataSource) throw new ApolloInternalServerError("Cannot access data source.");
     return this.AppDataSource;
   }
 };

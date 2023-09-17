@@ -9,6 +9,14 @@ export const SchemaGraphQL = `#graphql
     password: String,
   }
 
+  type Task {
+    id: String,
+    title: String,
+    description: String,
+    complete: Boolean,
+    owner: String,
+  }
+
   type SuccessfulHTTPResponse {
     status: String!,
     message: String!,
@@ -19,10 +27,17 @@ export const SchemaGraphQL = `#graphql
   # case, the "books" query returns an array of zero or more Books (defined above).
   type Query {
     getAllUsers: [User],
+    getAllTasks: [Task],
   }
 
   type Mutation {
-    initialiseDatabase: SuccessfulHTTPResponse
+    initialiseDatabase: SuccessfulHTTPResponse,
+    registerUser(username: String!, email: String!, firstName: String!, lastName: String!, password: String!): SuccessfulHTTPResponse,
+    createTask(user: String!, title: String!, description: String!): SuccessfulHTTPResponse,
+    updateTask(taskId: String!, complete: Boolean!, description: String!, title: String!): SuccessfulHTTPResponse,
+    deleteTask(taskId: String!): SuccessfulHTTPResponse,
+    markTaskAsComplete(taskId: String!): SuccessfulHTTPResponse,
+    markTaskAsIncomplete(taskId: String!): SuccessfulHTTPResponse,
   }
 
 `;

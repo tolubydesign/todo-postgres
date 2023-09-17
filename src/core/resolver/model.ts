@@ -1,3 +1,7 @@
+import { GraphQLFieldResolverParams } from "@apollo/server";
+
+export type MutationGraphQLFieldResolverParams<ArgumentType = any> = GraphQLFieldResolverParams<undefined, any, ArgumentType>;
+
 export type UserModel = {
   id?: any,
   firstName: string,
