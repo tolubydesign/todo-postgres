@@ -1,3 +1,4 @@
+import { gql } from "apollo-server-lambda";
 
 export const SchemaGraphQL = `#graphql
   type User {
@@ -39,5 +40,10 @@ export const SchemaGraphQL = `#graphql
     markTaskAsComplete(taskId: String!): SuccessfulHTTPResponse,
     markTaskAsIncomplete(taskId: String!): SuccessfulHTTPResponse,
   }
-
 `;
+
+/**
+ * Lambda implementation of graphql schema.
+ * @see _link_ [Build a simple GraphQL server with Apollo Server and AWS CDK](https://cloudash.dev/blog/build-a-simple-graphql-server-with-apollo-and-cdk)
+ */
+export const LambdaSchemaGraphQL = gql`${SchemaGraphQL}`;
