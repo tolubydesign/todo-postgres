@@ -7,36 +7,22 @@ import { LambdaSchemaGraphQL } from './shared/schema/schema.js';
 import dotenv from 'dotenv'
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
-const serverPath = "/graphql";
-const server: ApolloServer = new ApolloServer({
+// const serverPath = "/graphql";
+const server = new ApolloServer({
   typeDefs: LambdaSchemaGraphQL,
   resolvers,
-  csrfPrevention: true,
-  cache: 'bounded',
-  context: ({ event, context, express }) => ({
-    headers: event.headers,
-    functionName: context.functionName,
-    event,
-    context,
-    expressRequest: express.req,
-  }),
-  plugins: [
-    ApolloServerPluginLandingPageLocalDefault({ embed: true }),
-  ],
-  formatError: (error) => {
-    return error
-  },
+  introspection: true,
+  // playground: {
+  //   endpoint: "/dev/graphql"
+  // },
+  // context: ({ event, context }) => ({
+  //   headers: event.headers,
+  //   functionName: context.functionName,
+  //   event,
+  //   context,
+  // }),
 });
 
 exports.handler = server.createHandler({
-  expressAppFromMiddleware(middleware) {
-    const app = express();
-    app.use(
-      serverPath,
-      middleware
-    );
-    return app;
-  }
 });
 
-// exports.graphqlHandler = server.createHandler();

@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/cdk-workshop.ts",
+  "app": "NODE_ENV=production npx ts-node --prefer-ts-exts bin/cdk-grapql.ts",
   "watch": {
     "include": [
       "**"

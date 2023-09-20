@@ -1,19 +1,36 @@
-# serverless.yml
-
 service: apollo-lambda
+package:
+  patterns:
+    - '!node_modules/**'
+    - '!_postgres_database/**'
+    - src/**
+    - '.env.production'
+    # - dist/**
 provider:
   name: aws
+  stage: dev
+  region: us-east-2
   runtime: nodejs18.x
+  httpApi:
+    cors: false
 functions:
   graphql:
-    # this is formatted as <FILENAME>.<HANDLER>
-    handler: graphql.graphqlHandler
+    # handler: dist/src/server.graphqlHandler # highlight-line
+    # handler: src/server.graphqlHandler # highlight-line
+    handler: src/serverless.graphqlHandler # highlight-line
     events:
     - http:
-        path: /
+        path: src/serverless
         method: post
-        cors: true
     - http:
-        path: /
+        path: src/serverless
         method: get
-        cors: true
+    # events:
+    #   - httpApi:
+    #       path: /
+    #       method: POST
+    #   - httpApi:
+    #       path: /
+    #       method: GET
+plugins:
+  - serverless-plugin-typescript

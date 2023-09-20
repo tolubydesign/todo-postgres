@@ -7,6 +7,7 @@ import express from 'express';
 import http from 'http';
 import bodyParser from 'body-parser';
 import { SchemaGraphQL } from './shared/schema/schema.js';
+import { startServerAndCreateLambdaHandler, handlers } from '@as-integrations/aws-lambda';
 import cors from "cors";
 import dotenv from 'dotenv'
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
@@ -34,7 +35,6 @@ await server.start();
 
 app.use(
   serverPath,
-  cors<cors.CorsRequest>({ origin: ['http://localhost:3000'] }),
   bodyParser.json(), 
   expressMiddleware(server)
 );
@@ -42,6 +42,12 @@ app.use(
 // Modified server startup
 await new Promise<void>((resolve) => {
   console.log(`Sever up. On port: http://localhost:4000${serverPath}`)
-
   return httpServer.listen({ port: 4000 }, resolve)
 });
+
+// This final export is important!
+export const graphqlHandler = startServerAndCreateLambdaHandler(
+  server,
+  // We will be using the Proxy V2 handler
+  handlers.createAPIGatewayProxyEventV2RequestHandler(),
+);

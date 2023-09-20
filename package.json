@@ -5,20 +5,24 @@
   "type": "module",
   "scripts": {
     "serve": "NODE_ENV=development nodemon -r tsconfig-paths/register src/server.ts",
+    "serve-prod": "NODE_ENV=production nodemon -r tsconfig-paths/register src/server.ts",
     "build": "tsc --project './tsconfig.json'",
-    "dev-build": "npm run build && NODE_ENV=development node dist/server.js",
-    "prod-build": "npm run build && NODE_ENV=development node dist/server.js"
+    "dev-build": "npm run build && NODE_ENV=development node dist/src/server.js",
+    "prod-build": "npm run build && NODE_ENV=production node dist/src/server.js"
   },
   "devDependencies": {
     "@types/node": "^20.6.2",
     "nodemon": "^3.0.1",
+    "serverless-plugin-typescript": "^2.1.5",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.2.2"
   },
   "dependencies": {
     "@apollo/server": "^4.9.3",
+    "@as-integrations/aws-lambda": "^3.1.0",
     "@aws-cdk/aws-apigateway": "^1.204.0",
+    "@aws-cdk/aws-appsync": "^1.204.0",
     "@aws-cdk/aws-lambda": "^1.204.0",
     "@types/cors": "^2.8.14",
     "@types/pg": "^8.10.2",
@@ -27,7 +31,7 @@
     "aws-cdk-lib": "^2.96.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "graphql": "^16.8.0",
+    "graphql": "^16.8.1",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "typeorm": "^0.3.17"

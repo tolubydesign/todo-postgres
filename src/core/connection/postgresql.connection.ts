@@ -26,6 +26,8 @@ class PostgreSQLConnection {
     username: this.username,
     password: this.password,
     database: this.database,
+    // connectTimeoutMS: 10000,
+    uuidExtension: "uuid-ossp",
     synchronize: true,
     logging: false,
     entities: [
@@ -96,7 +98,12 @@ class PostgreSQLConnection {
       }
 
     }).catch((error) => {
-      console.log("Error on data source initialisation: ", error?.message ? error.message : error);
+      console.log("ERROR host", this.host);
+      console.log("ERROR password", this.password);
+      console.log("ERROR database", this.database);
+      console.log("ERROR port", this.port);
+      console.log("ERROR",);
+      console.log("CONNECTION ERROR: ", error);
     })
   }
 
