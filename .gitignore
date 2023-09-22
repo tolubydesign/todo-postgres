@@ -36,3 +36,5 @@ nodemon.txt
 .cdk.staging
 cdk.out
 .serverless/
+
+/bin

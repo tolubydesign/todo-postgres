@@ -8,7 +8,8 @@
     "serve-prod": "NODE_ENV=production nodemon -r tsconfig-paths/register src/server.ts",
     "build": "tsc --project './tsconfig.json'",
     "dev-build": "npm run build && NODE_ENV=development node dist/src/server.js",
-    "prod-build": "npm run build && NODE_ENV=production node dist/src/server.js"
+    "prod-build": "npm run build && NODE_ENV=production node dist/src/server.js",
+    "cdk-deploy": "NODE_ENV=production npm run build && cdk deploy"
   },
   "devDependencies": {
     "@types/node": "^20.6.2",
