@@ -23,23 +23,21 @@ import {
   Vpc,
 } from "aws-cdk-lib/aws-ec2";
 import {
-	AppsyncFunction,
-	AuthorizationType,
-	Code as AppSyncCode,
-	FieldLogLevel,
-	FunctionRuntime,
-	GraphqlApi,
-	Resolver,
-	SchemaFile,
+  AppsyncFunction,
+  AuthorizationType,
+  Code as AppSyncCode,
+  FieldLogLevel,
+  FunctionRuntime,
+  GraphqlApi,
+  Resolver,
+  SchemaFile,
 } from 'aws-cdk-lib/aws-appsync'
-import { LambdaSchemaGraphQL, SchemaGraphQL } from "../src/shared/schema/schema.js"
-
+import { LambdaSchemaGraphQL, SchemaGraphQL } from "../src/shared/schema/schema"
 import { config } from 'dotenv';
 import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-config();
-
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+config({ path: `.env.${process.env.NODE_ENV}` });
 
 /**
  * Graphql Lambda Stack containing the lambda instance and the code that will be run on the server.
@@ -56,19 +54,19 @@ export class GraphqlLambdaCdkStack extends Stack {
     super(scope, id, props);
 
     const engine = DatabaseInstanceEngine.postgres({ version: PostgresEngineVersion.VER_15_4 });
-    const instanceType = InstanceType.of(InstanceClass.T3, InstanceSize.MICRO);
+    const instanceType = InstanceType.of(InstanceClass.BURSTABLE3, InstanceSize.MICRO);
     const port = '5432';
     const databaseName = "postgres";
 
     // Creates the AppSync API
     const api = new appsync.GraphqlApi(this, 'GraphqlAppSyncApi', {
       name: 'todo-graphql-cdk-appsync-api',
-      schema: SchemaFile.fromAsset(path.join(__dirname, "../src/shared/schema/schema.graphql")),
+      schema: SchemaFile.fromAsset('src/shared/schema/schema.graphql'),
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.API_KEY,
           apiKeyConfig: {
-            expires: Expiration.after(Duration.days(365))
+            expires: Expiration.after(Duration.days(60))
           }
         },
       },
@@ -76,38 +74,53 @@ export class GraphqlLambdaCdkStack extends Stack {
     });
 
     // Prints out the AppSync GraphQL endpoint to the terminal
-    new CfnOutput(this, "GraphQLAPIURL", {
-      value: api.graphqlUrl
-    });
-
+    new CfnOutput(this, "GraphQLAPIURL", { value: api.graphqlUrl });
     // Prints out the AppSync GraphQL API key to the terminal
-    new CfnOutput(this, "GraphQLAPIKey", {
-      value: api.apiKey || ''
-    });
-
+    new CfnOutput(this, "GraphQLAPIKey", { value: api.apiKey || 'no-api-key' });
     // Prints out the stack region to the terminal
-    new CfnOutput(this, "Stack Region", {
-      value: this.region
+    new CfnOutput(this, "Stack Region", { value: this.region });
+    new CfnOutput(this, "Graphql api env", { value: `${api.env}` });
+    new CfnOutput(this, "Graphql Stack", { value: `${api.stack}` });
+    new CfnOutput(this, "Stack Name", { value: this.stackName });
+
+
+    // 👇 layer we've written
+    const calcLayer = new cdkLambda.LayerVersion(this, 'calc-layer', {
+      removalPolicy: RemovalPolicy.RETAIN,
+      code: cdkLambda.Code.fromAsset("src/layers/imports"),
+      compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
+      // compatibleRuntimes: [
+      //   lambda.Runtime.NODEJS_14_X,
+      //   lambda.Runtime.NODEJS_16_X,
+      // ],
+      // code: lambda.Code.fromAsset('src/layers/calc'),
+      description: 'Importing relevant packages and modules for project',
     });
 
-    new CfnOutput(this, "Graphql api env", {
-      value: `${api.env}`
-    });
-
-
-    new CfnOutput(this, "Graphql Stack", {
-      value: `${api.stack}`
+    // 👇 3rd party library layer
+    const yupLayer = new cdkLambda.LayerVersion(this, 'yup-layer', {
+      compatibleRuntimes: [
+        lambda.Runtime.NODEJS_14_X,
+        lambda.Runtime.NODEJS_16_X,
+      ],
+      code: lambda.Code.fromAsset('src/layers/yup-utils'),
+      description: 'Uses a 3rd party library called yup',
     });
 
     // Lambda 
     const graphqlLambda = new cdkLambda.Function(this, "graphqlLambda", {
       // The code being used
-      code: cdkLambda.Code.fromAsset(path.join(__dirname, "../src")),
+      code: cdkLambda.Code.fromAsset('dist/src'),
       // the function being initialised
-      handler: "src/serverless.handler",
+      handler: "index.handler",
       runtime: cdkLambda.Runtime.NODEJS_18_X,
+      memorySize: 1024,
       environment: {
         ENV: "development",
+        REGION: Stack.of(this).region,
+        AVAILABILITY_ZONES: JSON.stringify(
+          Stack.of(this).availabilityZones,
+        ),
         POSTGRES_USER: process.env.POSTGRES_USER!,
         POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD!,
         POSTGRES_DB: process.env.POSTGRES_DB!,
@@ -177,34 +190,6 @@ export class GraphqlLambdaCdkStack extends Stack {
       fieldName: "markTaskAsIncomplete"
     });
 
-
-
-
-
-    // // enable the Lambda function to access the DynamoDB table (using IAM)
-    // // notesTable.grantFullAccess(notesLambda)
-    // const RDSDatabase = new cdkRDS.CfnDBInstance(this, 'graphqlRDS', {
-    //   // vpc: myVpc,
-    //   // vpcSubnets: { subnetType: SubnetType.PUBLIC },
-    //   // instanceType,
-    //   // port,
-    //   // securityGroups: [dbSg],
-    //   // databaseName: databaseName,
-    //   // credentials: Credentials.fromSecret(masterUserSecret),
-    //   // deleteAutomatedBackups: true,
-    //   // removalPolicy: RemovalPolicy.DESTROY,
-    //   engine: 'postgres',
-    //   dbInstanceClass: 'db.t3.micro',
-    //   allocatedStorage: '10',
-    //   dbName: databaseName,
-    //   masterUsername: 'postgres',
-    //   masterUserPassword: process.env.POSTGRES_PASSWORD!,
-    //   publiclyAccessible: true,
-    //   vpcSecurityGroups: [],
-    //   // vpcSecurityGroupIds: [mySecurityGroup.securityGroupId],
-    //   // backupRetention: Duration.days(0), // disable automatic DB snapshot retention
-    // });
-
     const RDSDatabase = new cdkRDS.DatabaseInstance(this, 'graphqlRDS', {
       vpc: myVpc,
       vpcSubnets: { subnetType: SubnetType.PUBLIC },
@@ -224,60 +209,13 @@ export class GraphqlLambdaCdkStack extends Stack {
       publiclyAccessible: true,
     });
 
-    // RDSDatabase.connections.allowFrom(ec2Instance, ec2.Port.tcp(5432));
-
+    // RDSDatabase.connections.allowFrom(ec2Instance, Port.tcp(5432));
     new CfnOutput(this, 'dbEndpoint', {
       value: RDSDatabase.instanceEndpoint.hostname,
     });
-
     new CfnOutput(this, 'secretName', {
       // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
       value: RDSDatabase.secret?.secretName!,
     });
   }
-}
-
-// export class GraphqlLambdaCdkStack extends cdk.Stack {
-//   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
-//     super(scope, id, props);
-
-//     const graphqlLambda = new lambda.Function(this, "graphqlLambda", {
-//       // The code being used
-//       code: lambda.Code.fromAsset(path.join(__dirname, "../src/serverless.ts")),
-//       // the function being initialised
-//       handler: "graphql.handler",
-//       runtime: lambda.Runtime.NODEJS_16_X,
-//     });
-
-//     new apiGateway.LambdaRestApi(this, "graphqlEndpoint", {
-//       handler: graphqlLambda,
-//     });
-//   }
-// }
-
-// --
-
-// import { Duration, Stack, StackProps } from 'aws-cdk-lib';
-// import * as sns from 'aws-cdk-lib/aws-sns';
-// import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
-// import { Construct } from 'constructs';
-
-// export class GraphqlLambdaCdkStack extends Stack {
-//   constructor(scope: Construct, id: string, props?: StackProps) {
-//     super(scope, id, props);
-
-//     // defines an AWS Lambda resource
-//     const graphqlLambda = new lambda.Function(this, "graphqlLambda", {
-//       // The code being used
-//       code: lambda.Code.fromAsset(path.join(__dirname, "../src/serverless.ts")),
-//       // the function being initialised
-//       handler: "graphql.handler",
-//       runtime: lambda.Runtime.NODEJS_16_X,
-//     });
-
-//     new apiGateway.LambdaRestApi(this, "graphqlEndpoint", {
-//       handler: graphqlLambda,
-//     });
-//   }
-// }
+};

@@ -1,13 +1,14 @@
 #!/usr/bin/env node
-import * as cdk from 'aws-cdk-lib';
-import { GraphqlLambdaCdkStack } from '../lib/graphql-lambda-stack.js';
+import * as cdk from "aws-cdk-lib";
+import { GraphqlLambdaCdkStack } from "../lib/graphql-lambda-stack";
 import { config } from 'dotenv';
-config();
+config({ path: `.env.${process.env.NODE_ENV}` });
 
 const app = new cdk.App();
 new GraphqlLambdaCdkStack(app, 'GraphqlLambdaCdkStack', {
+  // stackName: "graphql-lambda-stack",
   env: {
-    account: "474412487035", // process.env.AWS_ACCOUNT_ID!,
-    region: "us-east-2", // process.env.AWS_REGION!
+    account: process.env.AWS_ACCOUNT_ID, // process.env.AWS_ACCOUNT_ID!,
+    region: process.env.AWS_REGION, // process.env.AWS_REGION!
   }
 });

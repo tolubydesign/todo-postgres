@@ -1,10 +1,10 @@
-import postgresqlConnection from '../../connection/postgresql.connection.js';
-import { MutationGraphQLFieldResolverParams, UserModel } from '../model.js';
-import { ApolloInternalServerError } from '../../../shared/error/error-handler.js';
-import { User } from '../../connection/entity/user.js';
-import { Task } from '../../connection/entity/task.js';
+import postgresqlConnection from '../../connection/postgresql.connection';
+import { MutationGraphQLFieldResolverParams, UserModel } from '../model';
+import { ApolloInternalServerError } from '../../../shared/error/error-handler';
+import { User } from '../../connection/entity/user';
+import { Task } from '../../connection/entity/task';
 import { GraphQLResolveInfo } from "graphql";
-import { GetTaskResponse } from "./model.query.js";
+import { GetTaskResponse } from "./model.query";
 
 /**
  * Full collection of Apollo queries.
@@ -15,7 +15,7 @@ export function ApolloQueries(): Record<string, (
   _: MutationGraphQLFieldResolverParams['source'],
   args: MutationGraphQLFieldResolverParams['args'],
   context: MutationGraphQLFieldResolverParams['contextValue'],
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo | undefined
 ) => unknown> {
   return {
     // TODO: remove for production

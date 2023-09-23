@@ -1,9 +1,9 @@
 import { GraphQLResolveInfo } from "graphql";
-import { HTTPResponse, MutationGraphQLFieldResolverParams } from "../model.js";
-import { RegisterUserArgs, CreateTaskArgs, UpdateTaskArgs, DeleteTaskArgs } from "./model.mutation.js"
-import { ApolloInternalServerError } from "../../../shared/error/error-handler.js";
-import postgresqlConnection from '../../connection/postgresql.connection.js';
-import { Task } from "../../../core/connection/entity/task.js";
+import { HTTPResponse, MutationGraphQLFieldResolverParams } from "../model";
+import { RegisterUserArgs, CreateTaskArgs, UpdateTaskArgs, DeleteTaskArgs } from "./model.mutation"
+import { ApolloInternalServerError } from "../../../shared/error/error-handler";
+import postgresqlConnection from '../../connection/postgresql.connection';
+import { Task } from "../../../core/connection/entity/task";
 
 /**
  * Full collection of Apollo mutations.

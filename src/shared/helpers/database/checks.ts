@@ -1,2 +1,2 @@
 import { DataSource } from "typeorm";
-import { ApolloInternalServerError } from "../../error/error-handler.js";
+import { ApolloInternalServerError } from "../../error/error-handler";

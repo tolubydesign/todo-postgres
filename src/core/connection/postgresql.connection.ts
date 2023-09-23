@@ -1,14 +1,14 @@
 import "reflect-metadata";
-import path from 'path';
+import * as path from "path";
 import { fileURLToPath } from 'url';
 import { DataSource, Repository } from "typeorm";
-import { User } from "./entity/user.js";
-import { Task } from "./entity/task.js";
-import dotenv from 'dotenv'
-import { ApolloBadRequestError, ApolloInternalServerError } from "../../shared/error/error-handler.js";
+import { User } from "./entity/user";
+import { Task } from "./entity/task";
+import * as dotenv from 'dotenv'
+import { ApolloBadRequestError, ApolloInternalServerError } from "../../shared/error/error-handler";
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 /**
  * A class to manage our connection to the postgresql 
@@ -19,6 +19,7 @@ class PostgreSQLConnection {
   private password = process.env.POSTGRES_PASSWORD;
   private database = process.env.POSTGRES_DB;
   private port = process.env.POSTGRES_PORT;
+
   AppDataSource: DataSource = new DataSource({
     type: "postgres",
     host: this.host,

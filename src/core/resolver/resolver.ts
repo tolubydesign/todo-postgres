@@ -1,5 +1,5 @@
-import { ApolloMutations } from './mutation/mutation.js';
-import { ApolloQueries } from './query/query.js';
+import { ApolloMutations } from './mutation/mutation';
+import { ApolloQueries } from './query/query';
 import type { IExecutableSchemaDefinition } from '@graphql-tools/schema';
 
 // Resolvers define how to fetch the types defined in your schema.

@@ -1,5 +1,5 @@
 import { GraphQLError, GraphQLErrorOptions } from 'graphql';
-import { GraphQLResponseCode, KeyTypeApolloServerErrorCode, ReturnResponseCode, ReturnResponseMessage, ReturnResponseStatus, ServerResponseCode } from "../helpers/response-handling.js"
+import { GraphQLResponseCode, KeyTypeApolloServerErrorCode, ReturnResponseCode, ReturnResponseMessage, ReturnResponseStatus, ServerResponseCode } from "../helpers/response-handling"
 
 
 
