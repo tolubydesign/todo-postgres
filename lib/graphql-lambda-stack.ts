@@ -12,6 +12,7 @@ import { Construct } from 'constructs';
 import { Credentials, DatabaseInstance, DatabaseInstanceEngine, PostgresEngineVersion } from "aws-cdk-lib/aws-rds";
 import * as cdkRDS from 'aws-cdk-lib/aws-rds';
 import * as appsync from 'aws-cdk-lib/aws-appsync';
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import {
   InstanceClass,
   InstanceSize,
@@ -58,6 +59,23 @@ export class GraphqlLambdaCdkStack extends Stack {
     const port = '5432';
     const databaseName = "postgres";
 
+    // This will generated this secret { 'username': 'Administrator', 'password': 'random-password-32-chars'}
+    const rdsCredentials: Secret = new Secret(this, 'RDS Credentials', {
+      description: 'Rds credentials',
+      secretName: 'rds-secret-name-dev',
+      generateSecretString: {
+        secretStringTemplate: '{"username": "Administrator"}',
+        generateStringKey: 'password',
+        excludePunctuation: true
+      },
+      removalPolicy: RemovalPolicy.DESTROY
+    });
+
+    // Create username and password secret for DB Cluster
+    const secret = new cdkRDS.DatabaseSecret(this, 'RDS Database Secret', {
+      username: 'postgres',
+    });
+
     // Creates the AppSync API
     const api = new appsync.GraphqlApi(this, 'GraphqlAppSyncApi', {
       name: 'todo-graphql-cdk-appsync-api',
@@ -83,71 +101,36 @@ export class GraphqlLambdaCdkStack extends Stack {
     new CfnOutput(this, "Graphql Stack", { value: `${api.stack}` });
     new CfnOutput(this, "Stack Name", { value: this.stackName });
 
-
     // 👇 3rd party library layers
     const apolloServerLayer = new cdkLambda.LayerVersion(this, 'apollo_server-layer', {
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.DESTROY,
       code: cdkLambda.Code.fromAsset("src/layers/apollo_server"),
       compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
       description: 'Uses a 3rd party library called @apollo/server',
     });
     const asIntegrationsAWSLambdaLayer = new cdkLambda.LayerVersion(this, 'as-integrations_aws-lambda-layer', {
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.DESTROY,
       code: cdkLambda.Code.fromAsset("src/layers/as-integrations_aws-lambda"),
       compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
       description: 'Uses a 3rd party library called @as-integrations/aws-lambda',
     });
-    // const apolloServerCoreLayer = new cdkLambda.LayerVersion(this, 'apollo-server-core-layer', {
-    //   removalPolicy: RemovalPolicy.RETAIN,
-    //   code: cdkLambda.Code.fromAsset("src/layers/apollo-server-core"),
-    //   compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
-    //   description: 'Uses a 3rd party library called apollo-server-core',
-    // });
     const apolloServerLambdaLayer = new cdkLambda.LayerVersion(this, 'apollo-server-lambda-layer', {
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.DESTROY,
       code: cdkLambda.Code.fromAsset("src/layers/apollo-server-lambda"),
       compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
       description: 'Uses a 3rd party library called apollo-server-lambda',
     });
     const typeormLayer = new cdkLambda.LayerVersion(this, 'typeorm-layer', {
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.DESTROY,
       code: cdkLambda.Code.fromAsset("src/layers/typeorm"),
       compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
       description: 'Uses a 3rd party library called typeorm',
     });
-
-    // Lambda 
-    const graphqlLambda = new cdkLambda.Function(this, "graphqlLambda", {
-      // The code being used
-      code: cdkLambda.Code.fromAsset('dist/src'),
-      // the function being initialised
-      handler: "index.handler",
-      runtime: cdkLambda.Runtime.NODEJS_18_X,
-      memorySize: 1024,
-      environment: {
-        ENV: "development",
-        REGION: Stack.of(this).region,
-        AVAILABILITY_ZONES: JSON.stringify(
-          Stack.of(this).availabilityZones,
-        ),
-        POSTGRES_USER: process.env.POSTGRES_USER!,
-        POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD!,
-        POSTGRES_DB: process.env.POSTGRES_DB!,
-        PORT: process.env.PORT!,
-        HOST: process.env.HOST!,
-        POSTGRES_PORT: process.env.POSTGRES_PORT!,
-      },
-      layers: [
-        apolloServerLayer,
-        typeormLayer,
-        apolloServerLambdaLayer,
-        // apolloServerCoreLayer,
-        asIntegrationsAWSLambdaLayer,
-      ],
-    });
-
-    new cdkApiGateway.LambdaRestApi(this, "graphqlEndpoint", {
-      handler: graphqlLambda,
+    const pgLayer = new cdkLambda.LayerVersion(this, 'pg-layer', {
+      removalPolicy: RemovalPolicy.DESTROY,
+      code: cdkLambda.Code.fromAsset("src/layers/pg"),
+      compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
+      description: 'Uses a 3rd party library called pg',
     });
 
     // We know this VPC already exists
@@ -168,9 +151,92 @@ export class GraphqlLambdaCdkStack extends Stack {
       `Allow port ${port} for database connection from only within the VPC (${myVpc.vpcId})`
     );
 
+    const credentials = Credentials.fromGeneratedSecret("RDSSecret", {
+      secretName: "postgres"
+    })
+
+    const RDSDatabase = new cdkRDS.DatabaseInstance(this, 'graphqlRDS', {
+      vpc: myVpc,
+      vpcSubnets: { subnetType: SubnetType.PUBLIC },
+      engine,
+      instanceType,
+      credentials: credentials,
+      multiAz: false,
+      allocatedStorage: 10,
+      maxAllocatedStorage: 30,
+      allowMajorVersionUpgrade: false,
+      autoMinorVersionUpgrade: true,
+      backupRetention: Duration.days(0),
+      deleteAutomatedBackups: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      deletionProtection: false,
+      databaseName: 'todoPostgresDB',
+      publiclyAccessible: true,
+    });
+
+    new CfnOutput(this, 'CredentialsPassword', { value: `${RDSDatabase.secret?.secretArn}` });
+    new CfnOutput(this, 'CredentialsUsername', { value: `${credentials.username}` });
+
+    // RDSDatabase.connections.allowFrom(ec2Instance, Port.tcp(5432));
+    new CfnOutput(this, 'dbEndpoint', {
+      value: RDSDatabase.instanceEndpoint.hostname,
+    });
+    new CfnOutput(this, 'secretName', {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+      value: `${RDSDatabase.secret}`,
+    });
+
+    // Lambda 
+    const graphqlLambda = new cdkLambda.Function(this, "graphqlLambda", {
+      // The code being used
+      code: cdkLambda.Code.fromAsset('dist/src'),
+      // the function being initialised
+      handler: "index.handler",
+      runtime: cdkLambda.Runtime.NODEJS_18_X,
+      memorySize: 1024,
+      tracing: cdkLambda.Tracing.ACTIVE,
+      environment: {
+        ENV: "development",
+        REGION: Stack.of(this).region,
+        AVAILABILITY_ZONES: JSON.stringify(
+          Stack.of(this).availabilityZones,
+        ),
+        POSTGRES_USER: credentials.username,
+        POSTGRES_PASSWORD: RDSDatabase.secret?.secretArn ?? "",
+        POSTGRES_DB: process.env.POSTGRES_DB!,
+        PORT: RDSDatabase.dbInstanceEndpointPort,
+        HOST: RDSDatabase.dbInstanceEndpointAddress,
+        POSTGRES_PORT: RDSDatabase.dbInstanceEndpointPort,
+      },
+      layers: [
+        apolloServerLayer,
+        typeormLayer,
+        apolloServerLambdaLayer,
+        pgLayer,
+        asIntegrationsAWSLambdaLayer,
+      ],
+    });
+
+    new CfnOutput(this, "RDSDatabaseInstanceEndpointPort", { value: RDSDatabase.dbInstanceEndpointPort });
+    new CfnOutput(this, "RDSDatabaseInstanceEndpointAddress", { value: RDSDatabase.dbInstanceEndpointAddress });
+
+    const lambdaRestAPI = new cdkApiGateway.LambdaRestApi(this, "graphqlEndpoint", {
+      restApiName: `Apollo graphql endpoint`,
+      handler: graphqlLambda,
+      defaultCorsPreflightOptions: {
+        allowHeaders: ['Content-Type'],
+        allowOrigins: cdkApiGateway.Cors.ALL_ORIGINS,
+        allowMethods: cdkApiGateway.Cors.ALL_METHODS, // this is also the default
+      },
+      deployOptions: {
+        tracingEnabled: true,
+      },
+    });
+
+    new CfnOutput(this, "LambdaRestAPIURL", { value: lambdaRestAPI.url });
+
     // set the new Lambda function as a data source for the AppSync API
     const lambdaDs = api.addLambdaDataSource('lambdaDatasource', graphqlLambda);
-
 
     // create resolvers to match GraphQL operations in schema
     lambdaDs.createResolver("GetAllUsers", {
@@ -204,34 +270,6 @@ export class GraphqlLambdaCdkStack extends Stack {
     lambdaDs.createResolver("MarkTaskAsIncomplete", {
       typeName: "Mutation",
       fieldName: "markTaskAsIncomplete"
-    });
-
-    const RDSDatabase = new cdkRDS.DatabaseInstance(this, 'graphqlRDS', {
-      vpc: myVpc,
-      vpcSubnets: { subnetType: SubnetType.PUBLIC },
-      engine,
-      instanceType,
-      // credentials: rds.Credentials.fromGeneratedSecret('postgres'),
-      multiAz: false,
-      allocatedStorage: 10,
-      maxAllocatedStorage: 30,
-      allowMajorVersionUpgrade: false,
-      autoMinorVersionUpgrade: true,
-      backupRetention: Duration.days(0),
-      deleteAutomatedBackups: true,
-      removalPolicy: RemovalPolicy.DESTROY,
-      deletionProtection: false,
-      databaseName: 'todoPostgresDB',
-      publiclyAccessible: true,
-    });
-
-    // RDSDatabase.connections.allowFrom(ec2Instance, Port.tcp(5432));
-    new CfnOutput(this, 'dbEndpoint', {
-      value: RDSDatabase.instanceEndpoint.hostname,
-    });
-    new CfnOutput(this, 'secretName', {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-      value: RDSDatabase.secret?.secretName!,
     });
   }
 };
