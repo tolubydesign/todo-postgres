@@ -1,9 +1,9 @@
 import { GraphQLResolveInfo } from "graphql";
-import { HTTPResponse, MutationGraphQLFieldResolverParams } from "../model.js";
-import { RegisterUserArgs, CreateTaskArgs, UpdateTaskArgs, DeleteTaskArgs } from "./model.mutation.js"
-import { ApolloInternalServerError } from "../../../shared/error/error-handler.js";
-import postgresqlConnection from '../../connection/postgresql.connection.js';
-import { Task } from "../../../core/connection/entity/task.js";
+import { GetByUserIdArgs, HTTPResponse, MutationGraphQLFieldResolverParams } from "../model";
+import { RegisterUserArgs, CreateTaskArgs, UpdateTaskArgs, DeleteTaskArgs } from "./model.mutation"
+import { ApolloInternalServerError } from "../../../shared/error/error-handler";
+import postgresqlConnection from '../../connection/postgresql.connection';
+import { Task } from "../../../core/connection/entity/task";
 
 /**
  * Full collection of Apollo mutations.
@@ -16,13 +16,6 @@ export function ApolloMutations(): Record<string, (
   info: GraphQLResolveInfo
 ) => any> {
   return {
-    initialiseDatabase: async (): Promise<HTTPResponse> => {
-      return {
-        status: "OK",
-        message: "Database was successfully populated.",
-      };
-    },
-    // Create user request
     registerUser: async (_, { username, email, firstName, lastName, password }: RegisterUserArgs, context: any, info: any): Promise<HTTPResponse> => {
       // make sure database is accessible.
       const source = postgresqlConnection.dataSource();
@@ -46,7 +39,6 @@ export function ApolloMutations(): Record<string, (
       };
     },
 
-    // create task
     createTask: async (_, { user, title, description }: CreateTaskArgs, context, info): Promise<HTTPResponse> => {
       // make sure database is accessible.
       const source = postgresqlConnection.dataSource();
@@ -70,7 +62,6 @@ export function ApolloMutations(): Record<string, (
       };
     },
 
-    // update task information
     updateTask: async (_, { taskId, complete, description, title }: UpdateTaskArgs): Promise<HTTPResponse> => {
       // make sure database is accessible.
       const source = postgresqlConnection.dataSource();
@@ -95,7 +86,6 @@ export function ApolloMutations(): Record<string, (
       };
     },
 
-    // delete task
     deleteTask: async (_, { taskId }: DeleteTaskArgs): Promise<HTTPResponse> => {
       // make sure database is accessible.
       const source = postgresqlConnection.dataSource();
@@ -113,15 +103,14 @@ export function ApolloMutations(): Record<string, (
       };
     },
 
-    // mark task as complete
-    markTaskAsComplete: async (_, { taskId }, ): Promise<HTTPResponse> => {
+    markTaskAsComplete: async (_, { taskId },): Promise<HTTPResponse> => {
       // make sure database is accessible.
       const source = postgresqlConnection.dataSource();
       if (source instanceof Error) throw new ApolloInternalServerError(source.message);
 
       const taskRepository = postgresqlConnection.getTaskDataSource();
       // delete task details
-      await taskRepository.update({ id: taskId }, { complete: true});
+      await taskRepository.update({ id: taskId }, { complete: true });
 
       // TODO: return tasks or task.
       return {
@@ -130,20 +119,33 @@ export function ApolloMutations(): Record<string, (
       };
     },
 
-    // mark task as incomplete
-    markTaskAsIncomplete: async (_, { taskId }, ): Promise<HTTPResponse> => {
+    markTaskAsIncomplete: async (_, { taskId },): Promise<HTTPResponse> => {
       // make sure database is accessible.
       const source = postgresqlConnection.dataSource();
       if (source instanceof Error) throw new ApolloInternalServerError(source.message);
 
       const taskRepository = postgresqlConnection.getTaskDataSource();
       // delete task details
-      await taskRepository.update({ id: taskId }, { complete: false});
+      await taskRepository.update({ id: taskId }, { complete: false });
 
       // TODO: return tasks or task.
       return {
         status: "OK",
         message: "Task was updated successfully.",
+      };
+    },
+
+    removeUser: async (_, { userId }: GetByUserIdArgs, context: any, info: any): Promise<HTTPResponse> => {
+      const source = postgresqlConnection.dataSource();
+      if (source instanceof Error) throw new ApolloInternalServerError("Cannot connect to database.");
+
+      const userRepository = postgresqlConnection.getUserDataSource();
+      await userRepository.delete({
+        id: userId
+      })
+      return {
+        status: "OK",
+        message: "User was deleted successfully.",
       };
     },
   }

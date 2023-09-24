@@ -1,14 +1,15 @@
 import "reflect-metadata";
-import path from 'path';
+import * as path from "path";
 import { fileURLToPath } from 'url';
 import { DataSource, Repository } from "typeorm";
-import { User } from "./entity/user.js";
-import { Task } from "./entity/task.js";
-import dotenv from 'dotenv'
-import { ApolloBadRequestError, ApolloInternalServerError } from "../../shared/error/error-handler.js";
+// import { DataSource, Repository } from "/opt/nodejs/typeorm";
+import { User } from "./entity/user";
+import { Task } from "./entity/task";
+import * as dotenv from 'dotenv'
+import { ApolloBadRequestError, ApolloInternalServerError } from "../../shared/error/error-handler";
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 /**
  * A class to manage our connection to the postgresql 
@@ -19,6 +20,7 @@ class PostgreSQLConnection {
   private password = process.env.POSTGRES_PASSWORD;
   private database = process.env.POSTGRES_DB;
   private port = process.env.POSTGRES_PORT;
+
   AppDataSource: DataSource = new DataSource({
     type: "postgres",
     host: this.host,
@@ -26,10 +28,15 @@ class PostgreSQLConnection {
     username: this.username,
     password: this.password,
     database: this.database,
+    // connectTimeoutMS: 10000,
+    uuidExtension: "uuid-ossp",
     synchronize: true,
     logging: false,
     entities: [
-      User, Task
+      __dirname + "/entity/*.{js,ts}"
+      // path.join(__dirname, '/entity/user.{js,ts}'),
+      // path.join(__dirname, '/entity/task.{js,ts}'),
+      // User, Task
     ],
     migrations: [],
     subscribers: [],
@@ -53,50 +60,53 @@ class PostgreSQLConnection {
     if (!this.AppDataSource) throw new Error("Cannot access source data.");
     // Check that there are users. if there's nothing then add them
     return await this.AppDataSource.initialize().then(async () => {
+      console.log("Initialising database.");
 
-      const hasUsers = await this.AppDataSource.manager.find(User)
-      console.log("Initialising database.")
-      if (!hasUsers || hasUsers.length <= 0) {
-        console.log("Inserting a new user into the database...");
-        const user1 = this.createNewUser({
-          email: "timbersaw@gmail.com",
-          firstName: "Timber",
-          lastName: "Saw",
-          password: "password",
-          username: "tim"
-        });
+      // Note. In production this would not be implemented.
+      const users = await this.AppDataSource?.manager.find(User)
+      const user1 = this.createNewUser({
+        email: "timbersaw@gmail.com",
+        firstName: "Timber",
+        lastName: "Saw",
+        password: "password",
+        username: "tim"
+      });
 
-        const user2 = this.createNewUser({
-          email: "jeff_ken@gmail.com",
-          firstName: "Jeff",
-          lastName: "Ken",
-          password: "password",
-          username: "jeff"
-        });
+      const user2 = this.createNewUser({
+        email: "jeff_ken@gmail.com",
+        firstName: "Jeff",
+        lastName: "Ken",
+        password: "password",
+        username: "jeff"
+      });
 
-        const user3 = this.createNewUser({
-          email: "tom@gmail.com",
-          firstName: "Tom",
-          lastName: "Joe",
-          password: "password",
-          username: "tom"
-        })
+      const user3 = this.createNewUser({
+        email: "tom@gmail.com",
+        firstName: "Tom",
+        lastName: "Joe",
+        password: "password",
+        username: "tom"
+      })
 
+      if (!users.find((user => user.email === user1.email))) {
+        console.log("adding user one", user1.email);
         await this.AppDataSource.manager.save(user1);
-        await this.AppDataSource.manager.save(user2);
-        await this.AppDataSource.manager.save(user3);
-
-        console.log("Saved a new user with id: " + user1.id)
-        console.log("Loading users from the database...")
-
-        const users = await this.AppDataSource?.manager.find(User)
-
-        console.log("Loaded users: ", users)
-        console.log("Here you can setup and run express / fastify / any other framework.")
       }
 
+      if (!users.find((user => user.email === user2.email))) {
+        console.log("adding user two", user2.email);
+        await this.AppDataSource.manager.save(user2);
+      }
+
+      if (!users.find((user => user.email === user3.email))) {
+        console.log("adding user three", user3.email);
+        await this.AppDataSource.manager.save(user3);
+      }
+
+      console.log("Loading users from the database...")
+      // console.log("Loaded users: ", users)
     }).catch((error) => {
-      console.log("Error on data source initialisation: ", error?.message ? error.message : error);
+      console.log("CONNECTION ERROR: ", error);
     })
   }
 

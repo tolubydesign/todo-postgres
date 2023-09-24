@@ -17,3 +17,11 @@ export type HTTPResponse = {
   status: string,
   message: string,
 }
+
+export type GetByIdArgs = {
+  id: string
+}
+
+export type GetByUserIdArgs = {
+  userId: string
+}
