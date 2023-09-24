@@ -8,12 +8,13 @@
   "scripts": {
     "serve": "NODE_ENV=development nodemon -r tsconfig-paths/register src/server.ts",
     "serve-prod": "NODE_ENV=production nodemon -r tsconfig-paths/register src/server.ts",
-    "build": "tsc --project './tsconfig.json'",
+    "build": "tsc",
     "dev-build": "npm run build && NODE_ENV=development node dist/src/server.js",
     "prod-build": "npm run build && NODE_ENV=production node dist/src/server.js",
     "cdk-deploy": "NODE_ENV=production npm run build && cdk deploy",
     "cdk-delete": "npx aws-cdk destroy",
-    "server": "NODE_ENV=development nodemon -r tsconfig-paths/register npm run build && NODE_ENV=development node dist/src/server.js"
+    "server": "NODE_ENV=development nodemon -r tsconfig-paths/register npm run build && NODE_ENV=development node dist/src/server.js",
+    "export-modules": "sh copy-modules.sh"
   },
   "devDependencies": {
     "@types/node": "^20.6.2",

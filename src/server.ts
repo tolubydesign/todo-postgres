@@ -1,16 +1,26 @@
 "use strict";
+/* eslint-disable import/extensions, import/no-absolute-path */
 // import "reflect-metadata";
-import { ApolloServer } from '@apollo/server';
-import { expressMiddleware } from '@apollo/server/express4';
-import { resolvers } from "./core/resolver/resolver";
-import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import * as express from 'express';
 import * as http from 'http';
 import * as bodyParser from 'body-parser';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import { resolvers } from "./core/resolver/resolver";
 import { SchemaGraphQL } from './shared/schema/schema';
-import { startServerAndCreateLambdaHandler, handlers } from '@as-integrations/aws-lambda';
-// import * as cors from "cors";
 import * as dotenv from 'dotenv';
+
+// import "reflect-metadata";
+// import * as express from 'express';
+// import * as http from 'http';
+// import * as bodyParser from 'body-parser';
+// // A combination of multiple @apollo/server/* imports
+// import { ApolloServer, expressMiddleware, ApolloServerPluginDrainHttpServer } from '/opt/nodejs/apollo_server';
+// // import { startServerAndCreateLambdaHandler, handlers } from '/opt/nodejs/as-integrations_aws-lambda';
+// import { resolvers } from "./core/resolver/resolver";
+// import { SchemaGraphQL } from './shared/schema/schema';
+// import * as dotenv from '/opt/nodejs/dotenv';
 
 // require("reflect-metadata");
 // const { ApolloServer } = require('@apollo/server');

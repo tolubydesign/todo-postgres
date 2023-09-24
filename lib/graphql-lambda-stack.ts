@@ -84,27 +84,36 @@ export class GraphqlLambdaCdkStack extends Stack {
     new CfnOutput(this, "Stack Name", { value: this.stackName });
 
 
-    // 👇 layer we've written
-    const calcLayer = new cdkLambda.LayerVersion(this, 'calc-layer', {
+    // 👇 3rd party library layers
+    const apolloServerLayer = new cdkLambda.LayerVersion(this, 'apollo_server-layer', {
       removalPolicy: RemovalPolicy.RETAIN,
-      code: cdkLambda.Code.fromAsset("src/layers/imports"),
+      code: cdkLambda.Code.fromAsset("src/layers/apollo_server"),
       compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
-      // compatibleRuntimes: [
-      //   lambda.Runtime.NODEJS_14_X,
-      //   lambda.Runtime.NODEJS_16_X,
-      // ],
-      // code: lambda.Code.fromAsset('src/layers/calc'),
-      description: 'Importing relevant packages and modules for project',
+      description: 'Uses a 3rd party library called @apollo/server',
     });
-
-    // 👇 3rd party library layer
-    const yupLayer = new cdkLambda.LayerVersion(this, 'yup-layer', {
-      compatibleRuntimes: [
-        lambda.Runtime.NODEJS_14_X,
-        lambda.Runtime.NODEJS_16_X,
-      ],
-      code: lambda.Code.fromAsset('src/layers/yup-utils'),
-      description: 'Uses a 3rd party library called yup',
+    const asIntegrationsAWSLambdaLayer = new cdkLambda.LayerVersion(this, 'as-integrations_aws-lambda-layer', {
+      removalPolicy: RemovalPolicy.RETAIN,
+      code: cdkLambda.Code.fromAsset("src/layers/as-integrations_aws-lambda"),
+      compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
+      description: 'Uses a 3rd party library called @as-integrations/aws-lambda',
+    });
+    // const apolloServerCoreLayer = new cdkLambda.LayerVersion(this, 'apollo-server-core-layer', {
+    //   removalPolicy: RemovalPolicy.RETAIN,
+    //   code: cdkLambda.Code.fromAsset("src/layers/apollo-server-core"),
+    //   compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
+    //   description: 'Uses a 3rd party library called apollo-server-core',
+    // });
+    const apolloServerLambdaLayer = new cdkLambda.LayerVersion(this, 'apollo-server-lambda-layer', {
+      removalPolicy: RemovalPolicy.RETAIN,
+      code: cdkLambda.Code.fromAsset("src/layers/apollo-server-lambda"),
+      compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
+      description: 'Uses a 3rd party library called apollo-server-lambda',
+    });
+    const typeormLayer = new cdkLambda.LayerVersion(this, 'typeorm-layer', {
+      removalPolicy: RemovalPolicy.RETAIN,
+      code: cdkLambda.Code.fromAsset("src/layers/typeorm"),
+      compatibleArchitectures: [cdkLambda.Architecture.X86_64, cdkLambda.Architecture.ARM_64],
+      description: 'Uses a 3rd party library called typeorm',
     });
 
     // Lambda 
@@ -128,6 +137,13 @@ export class GraphqlLambdaCdkStack extends Stack {
         HOST: process.env.HOST!,
         POSTGRES_PORT: process.env.POSTGRES_PORT!,
       },
+      layers: [
+        apolloServerLayer,
+        typeormLayer,
+        apolloServerLambdaLayer,
+        // apolloServerCoreLayer,
+        asIntegrationsAWSLambdaLayer,
+      ],
     });
 
     new cdkApiGateway.LambdaRestApi(this, "graphqlEndpoint", {

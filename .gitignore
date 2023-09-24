@@ -38,3 +38,5 @@ cdk.out
 .serverless/
 
 /bin
+
+src/layers/**/node_modules/**

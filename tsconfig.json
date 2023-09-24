@@ -165,13 +165,22 @@
     "sourceMap": false,
     // path alias tsconfig-paths
     "baseUrl": "./",
+    "paths": {
+      "/opt/nodejs/apollo-server-core": ["src/layers/apollo-server-core/nodejs/apollo-server-core"],
+      "/opt/nodejs/apollo-server-lambda": ["src/layers/apollo-server-lambda/nodejs/apollo-server-lambda"],
+      "/opt/nodejs/as-integrations_aws-lambda": ["src/layers/as-integrations_aws-lambda/nodejs/as-integrations_aws-lambda"],
+      "/opt/nodejs/dotenv": ["src/layers/dotenv/nodejs/dotenv"],
+      "/opt/nodejs/apollo_server": ["src/layers/apollo_server/nodejs/apollo_server"],
+      "/opt/nodejs/typeorm": ["src/layers/typeorm/nodejs/typeorm"],
+    },
+    "typeRoots": ["./node_modules/@types"],
     // "paths": {
     //   "@/*": ["./src/*"]
     // }
   },
+  "exclude": ["node_modules", ".vscode", "__test__", "cdk.out"],
   "include": [
     "src/*",
     "./@types"
   ],
-  "exclude": ["node_modules", ".vscode", "__test__", "cdk.out"],
 }

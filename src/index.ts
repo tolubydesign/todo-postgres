@@ -1,12 +1,21 @@
 // import "reflect-metadata"
 import { ApolloServer } from "apollo-server-lambda";
 import { resolvers } from "./core/resolver/resolver";
-import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
+// import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
 // import * as express from 'express';
 import { LambdaSchemaGraphQL } from './shared/schema/schema';
 import * as dotenv from 'dotenv'
 import { ApolloQueries } from "./core/resolver/query/query";
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
+dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+
+// import { ApolloServer } from "/opt/nodejs/apollo-server-lambda";
+// import { resolvers } from "./core/resolver/resolver";
+// // import { ApolloServerPluginLandingPageLocalDefault } from "/opt/nodejs/apollo-server-core";
+// // import * as express from 'express';
+// import { LambdaSchemaGraphQL } from './shared/schema/schema';
+// import * as dotenv from '/opt/nodejs/dotenv'
+// import { ApolloQueries } from "./core/resolver/query/query";
+// dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 
 // require("reflect-metadata");
 // const { ApolloServer } = require("apollo-server-lambda");
@@ -22,8 +31,7 @@ dotenv.config({ path: `.env.${process.env.NODE_ENV}` })
 // const bodyParser = require("body-parser");
 // const { LambdaSchemaGraphQL } = require("./shared/schema/schema.js");
 // const { startServerAndCreateLambdaHandler, handlers } = require("@as-integrations/aws-lambda");
-
-dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
+// dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
 
 const serverPath = "/api";
 const server = new ApolloServer({
