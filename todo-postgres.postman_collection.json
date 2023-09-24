@@ -1,0 +1,200 @@
+{
+	"info": {
+		"_postman_id": "1ae48849-9a9a-4423-8f6d-8cac474e50c4",
+		"name": "Todo Postgres",
+		"description": "API Documentation for Todo Task",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "8101601"
+	},
+	"item": [
+		{
+			"name": "Get All Users",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query GetAllUsers {\n  getAllUsers {\n    id\n    firstName\n    lastName\n    username\n    email\n    password\n  }\n}\n",
+						"variables": ""
+					}
+				},
+				"url": "http://localhost:4000/graphql",
+				"description": "Request all Users known to the postgres database."
+			},
+			"response": []
+		},
+		{
+			"name": "Create Task",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation CreateTask($user: String!, $title: String!, $description: String!) {\n  createTask(user: $user, title: $title, description: $description) {\n    message\n    status\n  }\n}",
+						"variables": "{\n  \"user\": \"aca036fd-4226-48a5-afc0-2bba2681cdbb\",\n  \"title\": \"Task created on api\",\n  \"description\": \"\"\n}"
+					}
+				},
+				"url": "http://localhost:4000/graphql",
+				"description": "Create a new task for user to complete."
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Tasks",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query GetAllTasks {\n  getAllTasks {\n    id\n    title\n    description\n    complete\n    owner\n  }\n}",
+						"variables": ""
+					}
+				},
+				"url": "http://localhost:4000/graphql",
+				"description": "Get all task known to the postgres database. Irrespective of its owner. This is for testing purposes only."
+			},
+			"response": []
+		},
+		{
+			"name": "Get All User Task By Id",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query GetUserTasks($userId: String!) {\n  getUserTasks(userId: $userId) {\n    id\n    title\n    description\n    complete\n    owner\n  }\n}",
+						"variables": "{\n  \"userId\": \"280dbaf4-f0a8-4e0d-ab08-704dbd3b9e97\"\n}"
+					}
+				},
+				"url": "http://localhost:4000/graphql",
+				"description": "Get a all the tasks created but user id provided."
+			},
+			"response": []
+		},
+		{
+			"name": "Get User By Id",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query GetUserById($userId: String!) {\n  getUserById(userId: $userId) {\n    id\n    firstName\n    lastName\n    username\n    email\n    password\n  }\n}",
+						"variables": "{\n  \"userId\": \"50f11730-9101-474b-8d9f-ea008986e08a\"\n}"
+					}
+				},
+				"url": "http://localhost:4000/graphql",
+				"description": "Get single user details based on information provided."
+			},
+			"response": []
+		},
+		{
+			"name": "Register User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "da2-lfu2p4srzzhh7khoefrssqz2ke",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Authorization",
+						"value": "graphqlRDSSecretBF2758C8-TbqpvpQVDoeN",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/graphql",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation RegisterUser($username: String!, $email: String!, $firstName: String!, $lastName: String!, $password: String!) {\n  registerUser(username: $username, email: $email, firstName: $firstName, lastName: $lastName, password: $password) {\n    status\n    message\n  }\n}",
+						"variables": "{\n  \"username\": \"Del\",\n  \"email\": \"dell@gmail.com\",\n  \"firstName\": \"Delamane\",\n  \"lastName\": \"Auto\",\n  \"password\": \"password\"\n}"
+					}
+				},
+				"url": "http://localhost:4000/graphql",
+				"description": "Add new user to postgres database."
+			},
+			"response": []
+		},
+		{
+			"name": "Update Task",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation UpdateTask($taskId: String!, $complete: Boolean!, $description: String!, $title: String!) {\n  updateTask(taskId: $taskId, complete: $complete, description: $description, title: $title) {\n    message\n    status\n  }\n}",
+						"variables": "{\n  \"taskId\": \"40c43717-ea0c-4adb-8f85-0518721d9d8c\",\n  \"complete\": false,\n  \"description\": \"More information needs to be added\",\n  \"title\": \"Updated task via api version two\"\n}"
+					}
+				},
+				"url": "http://localhost:4000/graphql",
+				"description": "Update the information of a single task. Everything but the id can be changed."
+			},
+			"response": []
+		},
+		{
+			"name": "Remove User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation RemoveUser($userId: String!) {\n  removeUser(userId: $userId) {\n    status\n    message\n  }\n}\n",
+						"variables": "{\n  \"userId\": \"1f21dd7d-395e-47cb-b11e-ae34f509184d\"\n}"
+					}
+				},
+				"url": "http://localhost:4000/graphql",
+				"description": "Remove a user from database."
+			},
+			"response": []
+		},
+		{
+			"name": "Mark Task As Complete",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation MarkTaskAsComplete($taskId: String!) {\n  markTaskAsComplete(taskId: $taskId) {\n    message\n    status\n  }\n}",
+						"variables": "{\n  \"taskId\": \"650022e8-f414-4861-8848-1c3b78f54a06\"\n}"
+					}
+				},
+				"url": "http://localhost:4000/graphql",
+				"description": "Update a task to be complete."
+			},
+			"response": []
+		},
+		{
+			"name": "Mark Task As Incomplete",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation MarkTaskAsIncomplete($taskId: String!) {\n  markTaskAsIncomplete(taskId: $taskId) {\n    message\n    status\n  }\n}",
+						"variables": "{\n  \"taskId\": \"650022e8-f414-4861-8848-1c3b78f54a06\"\n}"
+					}
+				},
+				"url": "http://localhost:4000/graphql",
+				"description": "Update a task to be incomplete."
+			},
+			"response": []
+		}
+	]
+}

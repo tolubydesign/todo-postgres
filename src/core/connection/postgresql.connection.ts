@@ -104,7 +104,7 @@ class PostgreSQLConnection {
       }
 
       console.log("Loading users from the database...")
-      console.log("Loaded users: ", users)
+      // console.log("Loaded users: ", users)
     }).catch((error) => {
       console.log("CONNECTION ERROR: ", error);
     })
