@@ -29,16 +29,18 @@ export const SchemaGraphQL = `#graphql
   type Query {
     getAllUsers: [User],
     getAllTasks: [Task],
+    getUserById(userId: String!): User,
+    getUserTasks(userId: String!): [Task],
   }
 
   type Mutation {
-    initialiseDatabase: SuccessfulHTTPResponse,
     registerUser(username: String!, email: String!, firstName: String!, lastName: String!, password: String!): SuccessfulHTTPResponse,
     createTask(user: String!, title: String!, description: String!): SuccessfulHTTPResponse,
     updateTask(taskId: String!, complete: Boolean!, description: String!, title: String!): SuccessfulHTTPResponse,
     deleteTask(taskId: String!): SuccessfulHTTPResponse,
     markTaskAsComplete(taskId: String!): SuccessfulHTTPResponse,
     markTaskAsIncomplete(taskId: String!): SuccessfulHTTPResponse,
+    removeUser(userId: String!): SuccessfulHTTPResponse,
   }
 `;
 

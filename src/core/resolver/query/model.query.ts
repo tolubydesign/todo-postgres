@@ -1,3 +1,4 @@
+import { UserModel } from "../model"
 
 export type GetTaskResponse = {
   id: string,
@@ -6,3 +7,5 @@ export type GetTaskResponse = {
   complete: boolean,
   owner: string,
 }
+
+export type GetUserResponse = Omit<UserModel, "password">
